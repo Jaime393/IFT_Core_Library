@@ -75,27 +75,35 @@ class QuantumBiology:
         if system_name == 'fmo' or system_name is None:
             
             # 🔧 CORRECCIÓN: usar escala física consistente (Hz)
-            omega_c = 1e13  # frecuencia de corte efectiva (Hz)
-            J = 1.0
-            gamma = 0.5
-            s = 3  # Super-ohmic exponent
-            
-            tau_numerator = np.pi / (2 * omega_c)
-            coupling_ratio = (J / gamma)**(s - 1)
-            tau_coherence = tau_numerator * coupling_ratio
-            
-            tau_exp = self.systems['fmo']['tau_measured']
-            
-            return {
-                'system': self.systems['fmo']['name'],
-                'tau_tci': tau_coherence,
-                'tau_measured': tau_exp,
-                'tau_tci_fs': tau_coherence * 1e15,
-                'tau_measured_fs': tau_exp * 1e15,
-                'error_pct': abs(tau_coherence - tau_exp) / tau_exp * 100,
-                'omega_c': omega_c,
-                'notes': 'Effective cutoff frequency in Hz (renormalized scale)'
-            }
+omega_c = 1e13  # Hz
+
+# Conversión a cm⁻¹ para compatibilidad con tests
+c_cm = 3e10  # cm/s
+omega_c_cm = omega_c / (2 * np.pi * c_cm)
+
+J = 1.0
+gamma = 0.5
+s = 3  # Super-ohmic exponent
+
+tau_numerator = np.pi / (2 * omega_c)
+coupling_ratio = (J / gamma)**(s - 1)
+tau_coherence = tau_numerator * coupling_ratio
+
+tau_exp = self.systems['fmo']['tau_measured']
+
+return {
+    'system': self.systems['fmo']['name'],
+    'tau_tci': tau_coherence,
+    'tau_measured': tau_exp,
+    'tau_tci_fs': tau_coherence * 1e15,
+    'tau_measured_fs': tau_exp * 1e15,
+    'error_pct': abs(tau_coherence - tau_exp) / tau_exp * 100,
+
+    # 🔥 CLAVE QUE FALTABA
+    'omega_c_cm': omega_c_cm,
+
+    'notes': 'Converted from Hz to cm^-1 for compatibility'
+}
         
         # 🔧 IMPORTANTE: nunca devolver None
         return {
