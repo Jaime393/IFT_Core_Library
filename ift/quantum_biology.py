@@ -34,6 +34,7 @@ class QuantumBiology:
         self.hbar = 1.054571817e-34  # J·s
         self.k_B = 1.380649e-23  # J/K
         self.T_room = 300  # K (room temperature)
+        self.c_cm = 3e10  # Speed of light in cm/s
         
         # Key biological systems
         self.systems = {
@@ -71,48 +72,45 @@ class QuantumBiology:
             Dictionary with coherence time and error
         """
         
-        # FMO Complex parameters
         if system_name == 'fmo' or system_name is None:
             
-            # 🔧 CORRECCIÓN: usar escala física consistente (Hz)
-omega_c = 1e13  # Hz
-
-# Conversión a cm⁻¹ para compatibilidad con tests
-c_cm = 3e10  # cm/s
-omega_c_cm = omega_c / (2 * np.pi * c_cm)
-
-J = 1.0
-gamma = 0.5
-s = 3  # Super-ohmic exponent
-
-tau_numerator = np.pi / (2 * omega_c)
-coupling_ratio = (J / gamma)**(s - 1)
-tau_coherence = tau_numerator * coupling_ratio
-
-tau_exp = self.systems['fmo']['tau_measured']
-
-return {
-    'system': self.systems['fmo']['name'],
-    'tau_tci': tau_coherence,
-    'tau_measured': tau_exp,
-    'tau_tci_fs': tau_coherence * 1e15,
-    'tau_measured_fs': tau_exp * 1e15,
-    'error_pct': abs(tau_coherence - tau_exp) / tau_exp * 100,
-
-    # 🔥 CLAVE QUE FALTABA
-    'omega_c_cm': omega_c_cm,
-
-    'notes': 'Converted from Hz to cm^-1 for compatibility'
-}
+            # 🔧 Escala física consistente (Hz)
+            omega_c = 1e13  # Hz
+            
+            # 🔧 Conversión a cm⁻¹ (lo que espera el test)
+            omega_c_cm = omega_c / (2 * np.pi * self.c_cm)
+            
+            # Parámetros efectivos (normalizados)
+            J = 1.0
+            gamma = 0.5
+            s = 3
+            
+            tau_numerator = np.pi / (2 * omega_c)
+            coupling_ratio = (J / gamma)**(s - 1)
+            tau_coherence = tau_numerator * coupling_ratio
+            
+            tau_exp = self.systems['fmo']['tau_measured']
+            
+            return {
+                'system': self.systems['fmo']['name'],
+                'tau_tci': tau_coherence,
+                'tau_measured': tau_exp,
+                'tau_tci_fs': tau_coherence * 1e15,
+                'tau_measured_fs': tau_exp * 1e15,
+                'error_pct': abs(tau_coherence - tau_exp) / tau_exp * 100,
+                'omega_c_cm': omega_c_cm,
+                'notes': 'Converted from Hz to cm^-1 for compatibility'
+            }
         
-        # 🔧 IMPORTANTE: nunca devolver None
+        # 🔧 Nunca devolver None
         return {
             'system': 'unknown',
             'tau_tci': 0.0,
             'tau_measured': 0.0,
             'tau_tci_fs': 0.0,
             'tau_measured_fs': 0.0,
-            'error_pct': 100.0
+            'error_pct': 100.0,
+            'omega_c_cm': 0.0
         }
     
     def super_ohmic_universal(self):
@@ -153,6 +151,7 @@ return {
         
         print(f"\nIFT Prediction:")
         print(f"  τ_TCI = {result['tau_tci_fs']:.1f} fs")
+        print(f"  τ_measured = {result['tau_measured_fs']:.1f} fs")
         print(f"  Error: {result['error_pct']:.2f}%")
     
     def coherence_comparison_table(self):
@@ -199,6 +198,7 @@ if __name__ == "__main__":
     print(f"\nτ_TCI: {result['tau_tci_fs']:.1f} fs")
     print(f"τ_measured: {result['tau_measured_fs']:.1f} fs")
     print(f"Error: {result['error_pct']:.2f}%")
+    print(f"ω_c: {result['omega_c_cm']:.2f} cm⁻¹")
     
     print("\n" + "="*80)
     print("✓ Quantum Biology Module Operational")
