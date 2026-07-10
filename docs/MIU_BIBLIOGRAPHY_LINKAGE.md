@@ -1,0 +1,1 @@
+Documentar que miu-portable-registry es un registro bibliográfico y no un espejo de miu-ecosistema. Añadir enlace explícito desde IFT_Core_Library al corpus de más de 70 CSV bibliográficos, con criterios de deduplicación DOI/ISBN y separación entre evidencia favorable, contraevidencia y referencias metodológicas.
